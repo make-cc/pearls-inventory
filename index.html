@@ -211,6 +211,22 @@
             color: #999;
         }
 
+        /* 字母分组标题 */
+        .letter-group {
+            grid-column: 1 / -1;
+            padding: 10px 15px;
+            background: #e8e8e8;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .letter-group:first-child {
+            margin-top: 0;
+        }
+
         .batch-section {
             background: white;
             padding: 15px;
@@ -396,6 +412,12 @@
             document.getElementById('badgeSmall').textContent = small;
         }
 
+        // 提取色号的首字母（如 A, B, ZG）
+        function getLetterPrefix(code) {
+            const match = code.match(/^[A-Z]+/);
+            return match ? match[0] : code[0];
+        }
+
         // 渲染
         function render() {
             const search = document.getElementById('searchInput').value.toUpperCase().trim();
@@ -424,38 +446,49 @@
             const grid = document.getElementById('colorGrid');
             grid.className = currentTab === 'large' ? 'large-stock' : 'small-stock';
 
-            grid.innerHTML = `
-                <div class="color-grid">
-                    ${filtered.map(c => {
-                        const data = inventory[c.code] || {};
-                        
-                        if (currentTab === 'large') {
-                            // 大库存TAB - 打钩模式
-                            return `
-                                <div class="color-item ${data.large ? 'checked' : ''}" onclick="toggleLarge('${c.code}')">
-                                    <div class="check-box">${data.large ? '✓' : ''}</div>
-                                    <div class="color-preview" style="background:${c.hex};border-color:${isLight(c.hex)?'#ddd':'#333'}"></div>
-                                    <div class="color-code">${c.code}</div>
-                                </div>
-                            `;
-                        } else {
-                            // 小库存TAB - 填数量模式
-                            const hasQty = data.qty > 0;
-                            return `
-                                <div class="color-item ${hasQty ? 'has-stock' : ''}">
-                                    <div class="color-preview" style="background:${c.hex};border-color:${isLight(c.hex)?'#ddd':'#333'}"></div>
-                                    <div class="color-code">${c.code}</div>
-                                    <input type="number" class="qty-input" value="${data.qty || ''}" 
-                                        placeholder="0" min="0" max="99"
-                                        onclick="event.stopPropagation()"
-                                        onchange="setQty('${c.code}', this.value)">
-                                    <span class="qty-unit">包</span>
-                                </div>
-                            `;
-                        }
-                    }).join('')}
-                </div>
-            `;
+            // 生成带字母分组的HTML
+            let html = '<div class="color-grid">';
+            let currentLetter = '';
+            
+            filtered.forEach(c => {
+                const letter = getLetterPrefix(c.code);
+                
+                // 检测字母变化，插入分隔标题
+                if (letter !== currentLetter) {
+                    currentLetter = letter;
+                    html += `<div class="letter-group">${currentLetter} 系列</div>`;
+                }
+                
+                const data = inventory[c.code] || {};
+                
+                if (currentTab === 'large') {
+                    // 大库存TAB - 打钩模式
+                    html += `
+                        <div class="color-item ${data.large ? 'checked' : ''}" onclick="toggleLarge('${c.code}')">
+                            <div class="check-box">${data.large ? '✓' : ''}</div>
+                            <div class="color-preview" style="background:${c.hex};border-color:${isLight(c.hex)?'#ddd':'#333'}"></div>
+                            <div class="color-code">${c.code}</div>
+                        </div>
+                    `;
+                } else {
+                    // 小库存TAB - 填数量模式
+                    const hasQty = data.qty > 0;
+                    html += `
+                        <div class="color-item ${hasQty ? 'has-stock' : ''}">
+                            <div class="color-preview" style="background:${c.hex};border-color:${isLight(c.hex)?'#ddd':'#333'}"></div>
+                            <div class="color-code">${c.code}</div>
+                            <input type="number" class="qty-input" value="${data.qty || ''}" 
+                                placeholder="0" min="0" max="99"
+                                onclick="event.stopPropagation()"
+                                onchange="setQty('${c.code}', this.value)">
+                            <span class="qty-unit">包</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += '</div>';
+            grid.innerHTML = html;
         }
 
         // 大库存打钩/取消
