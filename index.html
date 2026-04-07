@@ -401,42 +401,28 @@
             const search = document.getElementById('searchInput').value.toUpperCase().trim();
             let filtered = allColors.filter(c => c.code.includes(search));
 
-            if (currentTab === 'large') {
-                // 大库存TAB - 有库存排前面
-                filtered.sort((a, b) => {
-                    const aData = inventory[a.code] || {};
-                    const bData = inventory[b.code] || {};
-                    const aHasStock = aData.large || aData.qty > 0;
-                    const bHasStock = bData.large || bData.qty > 0;
-                    if (aHasStock !== bHasStock) return bHasStock - aHasStock;
-                    return a.code.localeCompare(b.code, undefined, {numeric: true});
-                });
-            } else {
-                // 小库存TAB - 只显示有数量的，按数量排前面
-                filtered = filtered.filter(c => {
-                    const data = inventory[c.code] || {};
-                    return data.qty > 0 && !data.large;
-                });
-                filtered.sort((a, b) => {
-                    const aData = inventory[a.code] || {};
-                    const bData = inventory[b.code] || {};
-                    if (bData.qty !== aData.qty) return bData.qty - aData.qty;
-                    return a.code.localeCompare(b.code, undefined, {numeric: true});
-                });
-            }
+            // 排序：有库存的排前面，然后按色号
+            filtered.sort((a, b) => {
+                const aData = inventory[a.code] || {};
+                const bData = inventory[b.code] || {};
+                
+                if (currentTab === 'large') {
+                    // 大库存TAB
+                    const aHasLarge = !!aData.large;
+                    const bHasLarge = !!bData.large;
+                    if (aHasLarge !== bHasLarge) return bHasLarge - aHasLarge;
+                } else {
+                    // 小库存TAB
+                    const aHasQty = aData.qty > 0;
+                    const bHasQty = bData.qty > 0;
+                    if (aHasQty !== bHasQty) return bHasQty - aHasQty;
+                }
+                
+                return a.code.localeCompare(b.code, undefined, {numeric: true});
+            });
 
             const grid = document.getElementById('colorGrid');
             grid.className = currentTab === 'large' ? 'large-stock' : 'small-stock';
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `
-                    <div style="text-align:center;padding:60px 20px;background:white;border-radius:12px;color:#999;">
-                        <h3 style="font-size:18px;margin-bottom:8px;color:#ccc;">${currentTab === 'large' ? '暂无大库存' : '暂无小库存'}</h3>
-                        <p style="font-size:14px;">${currentTab === 'large' ? '点击颜色设置为大库存' : '在大库存TAB勾选后再到此处填写数量'}</p>
-                    </div>
-                `;
-                return;
-            }
 
             grid.innerHTML = `
                 <div class="color-grid">
@@ -454,8 +440,9 @@
                             `;
                         } else {
                             // 小库存TAB - 填数量模式
+                            const hasQty = data.qty > 0;
                             return `
-                                <div class="color-item has-stock">
+                                <div class="color-item ${hasQty ? 'has-stock' : ''}">
                                     <div class="color-preview" style="background:${c.hex};border-color:${isLight(c.hex)?'#ddd':'#333'}"></div>
                                     <div class="color-code">${c.code}</div>
                                     <input type="number" class="qty-input" value="${data.qty || ''}" 
