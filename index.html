@@ -562,11 +562,28 @@
             e.target.value = '';
         }
 
+        // 自动备份
+        function autoBackup() {
+            if (Object.keys(inventory).length === 0) return;
+            const blob = new Blob([JSON.stringify(inventory, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pearls-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             render();
             updateStats();
             document.getElementById('searchInput').addEventListener('input', render);
+            
+            // 有数据时自动备份
+            if (Object.keys(inventory).length > 0) {
+                setTimeout(autoBackup, 1000);
+            }
         });
     </script>
 </body>
