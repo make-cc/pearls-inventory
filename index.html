@@ -526,16 +526,21 @@
             e.target.value = '';
         }
 
-        // 自动备份
+        // 自动备份（每天只备份一次）
         function autoBackup() {
             if (Object.keys(inventory).length === 0) return;
+            const today = new Date().toISOString().slice(0,10);
+            const lastBackup = localStorage.getItem('pearlsLastBackup');
+            if (lastBackup === today) return;
+            
             const blob = new Blob([JSON.stringify(inventory, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `pearls-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `pearls-backup-${today}.json`;
             a.click();
             URL.revokeObjectURL(url);
+            localStorage.setItem('pearlsLastBackup', today);
         }
 
         // 初始化
@@ -544,7 +549,7 @@
             updateStats();
             document.getElementById('searchInput').addEventListener('input', render);
             
-            // 有数据时自动备份
+            // 有数据时自动备份（每天一次）
             if (Object.keys(inventory).length > 0) {
                 setTimeout(autoBackup, 1500);
             }
