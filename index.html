@@ -237,11 +237,11 @@
         <div class="stats">
             <div class="stat-card">
                 <h3 style="color:#4CAF50" id="statLarge">0</h3>
-                <p>大库存</p>
+                <p>大库存（个）</p>
             </div>
             <div class="stat-card">
                 <h3 style="color:#FF9800" id="statSmall">0</h3>
-                <p>小库存（包）</p>
+                <p>小库存（个）</p>
             </div>
             <div class="stat-card">
                 <h3 style="color:#9e9e9e" id="statTotal">291</h3>
@@ -382,18 +382,18 @@
 
         // 更新统计
         function updateStats() {
-            let large = 0, smallPacks = 0;
+            let large = 0, small = 0;
             allColors.forEach(c => {
                 const data = inventory[c.code] || {};
                 if (data.large) large++;
-                if (data.qty > 0) smallPacks += data.qty;
+                if (data.qty > 0) small++;
             });
 
             document.getElementById('statLarge').textContent = large;
-            document.getElementById('statSmall').textContent = smallPacks;
+            document.getElementById('statSmall').textContent = small;
             document.getElementById('statTotal').textContent = allColors.length;
             document.getElementById('badgeLarge').textContent = large;
-            document.getElementById('badgeSmall').textContent = smallPacks;
+            document.getElementById('badgeSmall').textContent = small;
         }
 
         // 渲染
